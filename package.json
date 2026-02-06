@@ -1,0 +1,24 @@
+{
+  "name": "superlumen",
+  "version": "1.0.0",
+  "main": "lumen-core.js",
+  "type": "module",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "start": "node lumen-core.js",
+    "test": "node test-lumen-core.js",
+    "test:all": "node test-baseagent.js && node test-new-schemas.js && node test-terminal-executor.js && node test-lumen-core.js",
+    "demo": "node demo-integration.js",
+    "generate-schemas": "node generate-schemas.js"
+  },
+  "keywords": ["ai", "agent", "memory", "terminal", "automation"],
+  "author": "Gregory Ward",
+  "license": "ISC",
+  "description": "Advanced agentic AI system with rolling memory, dynamic schema routing, and safe terminal execution",
+  "dependencies": {
+    "dotenv": "^17.2.4",
+    "openai": "^6.18.0"
+  }
+}
