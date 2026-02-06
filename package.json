@@ -13,12 +13,21 @@
     "demo": "node demo-integration.js",
     "generate-schemas": "node generate-schemas.js"
   },
-  "keywords": ["ai", "agent", "memory", "terminal", "automation"],
+  "keywords": [
+    "ai",
+    "agent",
+    "memory",
+    "terminal",
+    "automation"
+  ],
   "author": "Gregory Ward",
   "license": "ISC",
   "description": "Advanced agentic AI system with rolling memory, dynamic schema routing, and safe terminal execution",
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.2.4",
-    "openai": "^6.18.0"
+    "express": "^5.2.1",
+    "openai": "^6.18.0",
+    "ws": "^8.19.0"
   }
 }
