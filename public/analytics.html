@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lumen Core Analytics Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header h1 {
+      color: white;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+    }
+
+    .refresh-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: white;
+      margin-top: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-title {
+      color: white;
+      font-size: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-value {
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .card-label {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+
+    .chart-card {
+      grid-column: span 2;
+    }
+
+    .chart {
+      width: 100%;
+      height: 300px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 100%;
+      gap: 10px;
+    }
+
+    .bar {
+      flex: 1;
+      background: linear-gradient(180deg, #4ade80, #22c55e);
+      border-radius: 5px 5px 0 0;
+      position: relative;
+      min-height: 20px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .bar:hover {
+      filter: brightness(1.2);
+    }
+
+    .bar-label {
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .bar-value {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .pie-chart {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      position: relative;
+    }
+
+    .pie-slice {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .stat-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .stat-value {
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+    }
+
+    .badge-warning {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+    }
+
+    .badge-danger {
+      background: rgba(248, 113, 113, 0.2);
+      color: #f87171;
+    }
+
+    .loading {
+      text-align: center;
+      color: white;
+      padding: 50px;
+      font-size: 18px;
+    }
+
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
+
+    .list-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .list-label {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+    }
+
+    .list-value {
+      color: white;
+      font-weight: bold;
+    }
+
+    .error {
+      background: rgba(248, 113, 113, 0.2);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: #f87171;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Lumen Core Analytics</h1>
+      <p>Real-time performance monitoring and agent usage statistics</p>
+      <div class="refresh-badge">🔄 Auto-refresh: 30s</div>
+    </div>
+
+    <div id="loading" class="loading pulse">
+      Loading analytics data...
+    </div>
+
+    <div id="dashboard" style="display: none;">
+      <!-- Overview Cards -->
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">🔌 Active WebSockets</div>
+          <div class="card-value" id="activeWebSockets">0</div>
+          <div class="card-label">Live connections</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📡 Total Requests</div>
+          <div class="card-value" id="totalRequests">0</div>
+          <div class="card-label">Since deployment</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚡ Avg Latency</div>
+          <div class="card-value" id="avgLatency">0<span style="font-size: 20px;">ms</span></div>
+          <div class="card-label">Response time</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🛡️ Safety Rate</div>
+          <div class="card-value" id="safetyRate">100<span style="font-size: 20px;">%</span></div>
+          <div class="card-label">Commands blocked</div>
+        </div>
+      </div>
+
+      <!-- Agent Usage Chart -->
+      <div class="grid">
+        <div class="card chart-card">
+          <div class="card-title">🤖 Agent Popularity</div>
+          <div class="chart">
+            <div class="bar-chart" id="agentChart"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- War Room & Performance -->
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">⚔️ War Room Stats</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="warRoomTotal">0</div>
+              <div class="stat-label">Total Reviews</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="warRoomRate">0%</div>
+              <div class="stat-label">Approval Rate</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="warRoomApprovals">0</div>
+              <div class="stat-label">Approved</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="warRoomRejections">0</div>
+              <div class="stat-label">Rejected</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚡ Performance Metrics</div>
+          <div id="performanceList"></div>
+        </div>
+      </div>
+
+      <!-- Memory & Sessions -->
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">🧠 Memory Management</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="memoryWindow">0</div>
+              <div class="stat-label">Avg Window Size</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="memoryCompactions">0</div>
+              <div class="stat-label">Compactions</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="memoryLimitHits">0</div>
+              <div class="stat-label">Limit Hits</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="memoryPressure">Low</div>
+              <div class="stat-label">Pressure</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📊 Session Statistics</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="sessionsCreated">0</div>
+              <div class="stat-label">Created</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="sessionsCleared">0</div>
+              <div class="stat-label">Cleared</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="sessionsLifetime">0</div>
+              <div class="stat-label">Avg Lifetime</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="sessionsActive">0</div>
+              <div class="stat-label">Currently Active</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="error" style="display: none;"></div>
+  </div>
+
+  <script>
+    const API_URL = 'https://lumenchat.org/api/analytics/dashboard';
+    let refreshInterval;
+
+    async function fetchAnalytics() {
+      try {
+        const response = await fetch(API_URL);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const { dashboard } = await response.json();
+        updateDashboard(dashboard);
+        
+        // Hide loading, show dashboard
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('error').style.display = 'none';
+        
+      } catch (error) {
+        console.error('Analytics fetch error:', error);
+        showError(error.message);
+      }
+    }
+
+    function updateDashboard(data) {
+      // Overview cards
+      document.getElementById('activeWebSockets').textContent = data.overview.activeWebSockets;
+      document.getElementById('totalRequests').textContent = formatNumber(data.overview.totalRequests);
+      document.getElementById('avgLatency').innerHTML = data.overview.averageLatency + '<span style="font-size: 20px;">ms</span>';
+      
+      const safetyRate = 100 - parseFloat(data.overview.errorRate || 0);
+      document.getElementById('safetyRate').innerHTML = safetyRate.toFixed(1) + '<span style="font-size: 20px;">%</span>';
+
+      // Agent chart
+      renderAgentChart(data.agents);
+
+      // War Room stats
+      document.getElementById('warRoomTotal').textContent = data.warRoom.totalReviews;
+      document.getElementById('warRoomRate').textContent = data.warRoom.approvalRate.toFixed(1) + '%';
+      document.getElementById('warRoomApprovals').textContent = data.warRoom.approvals;
+      document.getElementById('warRoomRejections').textContent = data.warRoom.rejections;
+
+      // Performance metrics
+      renderPerformanceList(data.performance);
+
+      // Memory stats
+      document.getElementById('memoryWindow').textContent = data.performance.memory.averageWindowSize;
+      document.getElementById('memoryCompactions').textContent = data.performance.memory.compactions;
+      document.getElementById('memoryLimitHits').textContent = data.performance.memory.limitHits;
+      
+      const pressure = data.performance.memory.averageWindowSize >= 18 ? 'High' : 
+                       data.performance.memory.averageWindowSize >= 15 ? 'Medium' : 'Low';
+      document.getElementById('memoryPressure').textContent = pressure;
+
+      // Session stats
+      document.getElementById('sessionsCreated').textContent = data.sessions.totalCreated;
+      document.getElementById('sessionsCleared').textContent = data.sessions.totalCleared;
+      document.getElementById('sessionsLifetime').textContent = data.sessions.averageLifetime;
+      document.getElementById('sessionsActive').textContent = data.sessions.totalCreated - data.sessions.totalCleared;
+    }
+
+    function renderAgentChart(agentData) {
+      const chartContainer = document.getElementById('agentChart');
+      chartContainer.innerHTML = '';
+
+      if (!agentData.labels || agentData.labels.length === 0) {
+        chartContainer.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 100px 0;">No agent data yet</div>';
+        return;
+      }
+
+      const maxValue = Math.max(...agentData.values);
+
+      agentData.labels.forEach((label, index) => {
+        const value = agentData.values[index];
+        const heightPercent = (value / maxValue) * 100;
+
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = heightPercent + '%';
+        
+        const barValue = document.createElement('div');
+        barValue.className = 'bar-value';
+        barValue.textContent = value;
+        
+        const barLabel = document.createElement('div');
+        barLabel.className = 'bar-label';
+        barLabel.textContent = label;
+        
+        bar.appendChild(barValue);
+        bar.appendChild(barLabel);
+        chartContainer.appendChild(bar);
+      });
+    }
+
+    function renderPerformanceList(perfData) {
+      const container = document.getElementById('performanceList');
+      
+      const metrics = [
+        { label: 'Avg Latency', value: perfData.latency.avg + 'ms' },
+        { label: 'P95 Latency', value: perfData.latency.p95 + 'ms' },
+        { label: 'Min Latency', value: perfData.latency.min + 'ms' },
+        { label: 'Max Latency', value: perfData.latency.max + 'ms' }
+      ];
+
+      container.innerHTML = metrics.map(metric => `
+        <div class="list-item">
+          <span class="list-label">${metric.label}</span>
+          <span class="list-value">${metric.value}</span>
+        </div>
+      `).join('');
+    }
+
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'none';
+      const errorDiv = document.getElementById('error');
+      errorDiv.style.display = 'block';
+      errorDiv.className = 'error card';
+      errorDiv.innerHTML = `
+        <h2>❌ Error Loading Analytics</h2>
+        <p style="margin-top: 10px;">${message}</p>
+        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
+      `;
+    }
+
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    // Initial load
+    fetchAnalytics();
+
+    // Auto-refresh every 30 seconds
+    refreshInterval = setInterval(fetchAnalytics, 30000);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      clearInterval(refreshInterval);
+    });
+  </script>
+</body>
+</html>
